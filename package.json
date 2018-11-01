@@ -1,0 +1,22 @@
+{
+  "name": "order_bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for bitfinex multiply account trade",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stefan Mytchyk",
+  "license": "ISC",
+  "dependencies": {
+    "as-table": "^1.0.36",
+    "bitfinex-api-node": "^2.0.0",
+    "ccxt": "^1.17.383",
+    "ololog": "^1.1.112",
+    "telegraf": "^3.24.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "eslint-config-google": "^0.11.0"
+  }
+}
