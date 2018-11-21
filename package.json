@@ -9,10 +9,13 @@
   "author": "Stefan Mytchyk",
   "license": "ISC",
   "dependencies": {
+    "ansi-colors": "^3.2.1",
+    "ansicolor": "^1.1.78",
     "as-table": "^1.0.36",
-    "bitfinex-api-node": "^2.0.0",
     "ccxt": "^1.17.383",
+    "nodemon": "^1.18.6",
     "ololog": "^1.1.112",
+    "secure-env": "^1.0.0",
     "telegraf": "^3.24.1"
   },
   "devDependencies": {

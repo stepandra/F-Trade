@@ -5,11 +5,18 @@ const Markup = require('telegraf/markup');
 // const Extra = require('telegraf/extra');
 
 const Stage = require('telegraf/stage');
+const c = require('ansi-colors');
 
 // const Composer = require('telegraf/composer');
 const ccxt = require('ccxt');
 const log = require('ololog');
-const keys = require('./keys.json');
+const secureEnv = require('secure-env');
+global.env = secureEnv({
+  secret: process.env.SECUREENV_ORDER_TEST,
+});
+console.log(global.env.ALEX_DP_API);
+
+const keys = require('./config.js');
 const asTable = require('as-table').configure({
   delimiter: ' | ',
 });
@@ -140,13 +147,13 @@ const activePositions = new WizardScene('activePositions',
             const filtered = positions[i].map((item) => {
               return {
                 symbol: item.symbol.toUpperCase(),
-                base: parseInt(item.base).toFixed(4),
+                base: item.base,
                 amount: parseInt(item.amount).toFixed(0),
                 pl: parseInt(item.pl).toFixed(2) + ' $',
               };
             });
 
-            ctx.reply(` *${keys.accounts[i].name.toUpperCase()}* \n
+            ctx.replyWithMarkdown(` *${keys.accounts[i].name.toUpperCase()}* \n
             *${asTable(filtered)}* `);
           }
         } catch (e) {
@@ -169,16 +176,17 @@ const showBalance = new WizardScene(
               type: 'margin',
             });
             const marginInfo = await accounts[i].privatePostMarginInfos();
-            const marginBalance = marginInfo[0].margin_balance;
+            const marginBalance = marginInfo[0].net_value;
             // console.log(marginBalance);
+            console.log(c.bold.green(marginBalance.green));
 
             const filtredBalance = balance.info.filter(
                 (name) => name.type === 'trading' && name.amount > 0);
             const tableView = asTable(filtredBalance.map((item) => {
               const available = item.currency !== 'usd' ?
-              (parseInt(marginBalance)*parseInt(item.available)
-              /parseInt(item.amount)).toFixed(2) :
-              parseInt(item.available).toFixed(2);
+                (parseInt(marginBalance)*parseInt(item.available)
+                /parseInt(item.amount)).toFixed(2) :
+                parseInt(item.available).toFixed(2);
               const avPercent = (available/parseInt(marginBalance))*100;
               return {
                 coin: item.currency.toUpperCase(),
@@ -188,7 +196,7 @@ const showBalance = new WizardScene(
                 total: parseInt(marginBalance).toFixed(2) + ' $',
               };
             }));
-            ctx.replyWithMarkdown(`*${keys.accounts[i].name.toUpperCase()}* \n
+            ctx.replyWithMarkdown(` *${keys.accounts[i].name.toUpperCase()}* \n
               *${tableView}* `);
           }
           menuButton(ctx);
@@ -196,8 +204,22 @@ const showBalance = new WizardScene(
           // ctx.reply('Balance');
           return ctx.scene.leave();
         } catch (e) {
-          log(e);
-          ctx.reply(e);
+          if (e instanceof ccxt.DDoSProtection ||
+            e.message.includes('ECONNRESET')) {
+            log.bright.yellow('[DDoS Protection] ' + e.message);
+          } else if (e instanceof ccxt.RequestTimeout) {
+            log.bright.yellow('[Request Timeout] ' + e.message);
+          } else if (e instanceof ccxt.AuthenticationError) {
+            log.bright.yellow('[Authentication Error] ' + e.message);
+          } else if (e instanceof ccxt.ExchangeNotAvailable) {
+            log.bright.yellow('[Exchange Not Available Error] ' + e.message);
+          } else if (e instanceof ccxt.ExchangeError) {
+            log.bright.yellow('[Exchange Error] ' + e.message);
+          } else if (e instanceof ccxt.NetworkError) {
+            log.bright.yellow('[Network Error] ' + e.message);
+          } else {
+            throw e;
+          }
         }
       })();
     });
